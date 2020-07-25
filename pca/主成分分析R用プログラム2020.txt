@@ -1,0 +1,44 @@
+x <- read.csv("kadai1.csv",fileEncoding = "Shift-Jis") #データの読み込み
+u <- x
+p <- ncol(x) #変数の数
+MEAN <- as.numeric(apply(x,2,mean)) 
+SD <- as.numeric(apply(x,2,sd))
+j <- 1 #標準化
+for (i in 1:p) {
+u[j] <- x[j]- MEAN[j]
+u[j] <- u[j]/SD[j]
+j <- j+1
+} 
+R <- cor(u) #相関係数
+z <- eigen(R)
+λ <- z$values #固有値
+z <- z$vectors #固有ベクトル
+U <- data.matrix(u)
+Z <- U%*%z #主成分得点
+Λ <- λ/p #寄与率
+CΛ <- Λ #累積寄与率
+j <- 0
+for (i in 1:(p-1)) {
+j <- j+1
+CΛ[j+1] <- CΛ[j] + CΛ[j+1]
+}
+r <- matrix(1:p^2,nrow=p,ncol=p) #因子負荷量
+j <- 1
+for (i in 1:p) {
+r[j,] <- sqrt(λ[j])*z[,j]
+j <- j+1
+}
+write.table("固有値",file="output.txt",append=T,quote=F,col.names=F)
+write.table(t(λ),file="output.txt",append=T,quote=F,col.names=F)
+write.table("固有ベクトル",file="output.txt",append=T,quote=F,col.names=F)
+write.table(z,file="output.txt",append=T,quote=F,col.names=F)
+write.table("寄与率",file="output.txt",append=T,quote=F,col.names=F)
+write.table(t(Λ),file="output.txt",append=T,quote=F,col.names=F)
+write.table("累積寄与率",file="output.txt",append=T,quote=F,col.names=F)
+write.table(t(CΛ),file="output.txt",append=T,quote=F,col.names=F)
+write.table("因子負荷量",file="output.txt",append=T,quote=F,col.names=F)
+write.table(t(colnames(x)),file="output.txt",append=T,quote=F,col.names=F)
+write.table(r,file="output.txt",append=T,quote=F,col.names=F)
+write.table("主成分得点",file="output.txt",append=T,quote=F,col.names=F)
+write.table(Z,file="output.txt",append=T,quote=F,col.names=F)
+
