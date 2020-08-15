@@ -1,16 +1,44 @@
 # data読み込み
 input <- read.csv("boston.csv")
+input <- input[, colnames(input) != "X"]
 head(input)
+
+u <- input
+
+MEAN <- as.numeric(apply(input,2,mean)) 
+
+SD <- as.numeric(apply(input,2,sd))
+
+j <- 1 #標準化
+p <- ncol(input) #変数の数
+for (i in 1:p) {
+  
+  u[j] <- input[j]- MEAN[j]
+  
+  u[j] <- u[j]/SD[j]
+  
+  j <- j+1
+  
+}
+
+head(u)
 
 # モデル定義を作る(データによって異なる)
 createModel <- function() {
-  # 変数名 ??? 依存変数
+  # =~潜在変数の定義
   # + 依存変数の合成
+  # ~ 回帰
   return ("
-    value1 =~ CHAS + NOX
-    value2 =~ PTRATIO + LSTAT + CRIM
-    value3 =~ DIS + RAD
-    PRICE ~ value1 + value2 + value3
+    value1 =~ RAD + INDUS + NOX + TAX
+    value2 =~ ZN + RM + CRIM + B + DIS
+    PRICE ~ value1 + value2
+    RM ~~ ZN
+    NOX ~~ INDUS
+    CRIM ~~ INDUS
+    CRIM ~~ B
+    DIS ~~ RAD
+    RAD ~~ NOX
+    TAX ~~ RM
   ")
 }
 
@@ -19,10 +47,10 @@ library(lavaan)
 library(semPlot)
 
 model <- createModel()
-res_sem <- cfa(model, data= input)
+#全変数を標準化
+result.fit <- sem(model, data = u)
+summary(result.fit, fit.measures=T, standardized = TRUE)
 
-summary(res_sem, standardized = TRUE)
-
-fitMeasures(res_sem)
-semPaths(res_sem, "model", "est", intercepts = FALSE)
+#fitMeasures(res_sem)
+semPaths(result.fit,what="stand",style="lisrel")
 
